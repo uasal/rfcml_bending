@@ -1,4 +1,4 @@
-# This workflow will run daily at 06:45.
+# This workflow will run on a fixed schedule
 # It will install Python dependencies and run tests with a variety of Python versions.
 # See documentation for help debugging smoke test issues:
 #    https://lincc-ppt.readthedocs.io/en/latest/practices/ci_testing.html#version-culprit
@@ -7,9 +7,9 @@ name: Unit test smoke test
 
 on:
 
-  # Runs this workflow automatically
+  # Only runs on Saturday at 8:00am
   schedule:
-    - cron: 45 6 * * *
+    - cron: 0 8 * * 6
     
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
