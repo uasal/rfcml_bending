@@ -441,6 +441,9 @@ def remove_zerns(map, mask, terms, plots=False, iterations=17):
         A 1-d array of numbers corresponding to the indices to be removed.
         E.g. 1,2,5,7
 
+    iterations: int
+        Number of iterations passed to poppy fitter.
+
     plots: bool
         Show plots when executed?
 
@@ -492,11 +495,11 @@ def remove_zerns(map, mask, terms, plots=False, iterations=17):
         psd_tools = psd_utils.PSDUtils()
 
         ncols = 3
-        fig, (ax1, ax2, ax3) = plt.subplots(figsize=(20, ncols), ncols=ncols)
+        (ax1, ax2, ax3) = plt.subplots(figsize=(20, ncols), ncols=ncols)
         # fig.suptitle('Original, Fitted, theoretical residuals, actual residuals')
         vals = map * mask
         stats = psd_tools.get_map_stats(vals, mask, report=False)
-        pos1 = ax1.imshow(vals)
+        ax1.imshow(vals)
         ax1.set_title("Original")
         ax1.annotate(
             f"PtoV={stats.ptov:0.1f}\nRMS={stats.sigma:0.1f}",

@@ -153,9 +153,9 @@ class TestBending(TestCase):
 
         self.assertTrue(
             _perc_diff <= _criteria,
-            msg=f"""Expected PtoV of {_expect:0.1f},
-            but got {_got:0.1f}, a % diff of {_perc_diff:0.1f},
-            where success is {_criteria:0.1f}""",
+            msg=f"Expected PtoV of {_expect:0.1f},"
+            "but got {_got:0.1f}, a % diff of {_perc_diff:0.1f},"
+            "where success is {_criteria:0.1f}",
         )
 
         _got = np.abs(stats_resultant.rms)
@@ -165,9 +165,9 @@ class TestBending(TestCase):
 
         self.assertTrue(
             _perc_diff <= _criteria,
-            msg=f"""Expected RMS of {_expect:0.1f},
-            but got {_got:0.1f}, a % diff of {_perc_diff:0.1f},
-            where success is {_criteria:0.1f}""",
+            msg=f"Expected RMS of {_expect:0.1f},"
+            "but got {_got:0.1f}, a % diff of {_perc_diff:0.1f},"
+            "where success is {_criteria:0.1f}",
         )
 
     def test_bending_mode_correction(self):
@@ -212,8 +212,8 @@ class TestBending(TestCase):
         _actual = np.sum(~np.isnan(residual))
         self.assertTrue(
             _expect == _actual,
-            msg=f"""Input map has {_expect:0.1f} valid pixels,
-            but map has {_actual:0.1f}. They should be equal""",
+            msg=f"Input map has {_expect:0.1f} valid pixels,"
+            "but map has {_actual:0.1f}. They should be equal",
         )
 
     def test_bending_solvay_orig(self):
@@ -244,9 +244,9 @@ class TestBending(TestCase):
 
         self.assertTrue(
             _perc_diff <= _criteria,
-            msg=f"""Expected RMS of {_expect:0.2f}, but got {_got:0.2f},
-            a % diff of {_perc_diff:0.2f},
-            where success is {_criteria:0.2f}""",
+            msg=f"Expected RMS of {_expect:0.2f}, but got {_got:0.2f},"
+            "a % diff of {_perc_diff:0.2f},"
+            "where success is {_criteria:0.2f}",
         )
 
         # Create an array which is 6.6m, and we'll make the OD=6.42m, ID=1.38m
@@ -273,9 +273,9 @@ class TestBending(TestCase):
 
         self.assertTrue(
             _perc_diff <= _criteria,
-            msg=f"""Expected RMS on map with Zernikes removed of {_expect:0.1f},
-            but got {_got:0.1f}, a % diff of {_perc_diff:0.1f},
-            where success is {_criteria:0.1f}""",
+            msg=f"Expected RMS on map with Zernikes removed of {_expect:0.1f},"
+            "but got {_got:0.1f}, a % diff of {_perc_diff:0.1f},"
+            "where success is {_criteria:0.1f}",
         )
 
         # Now remove the bending modes
@@ -312,9 +312,9 @@ class TestBending(TestCase):
 
         self.assertTrue(
             _perc_diff <= _criteria,
-            msg=f"""Expected RMS on residual map of {_expect:0.1f},
-            but got {_got:0.1f}, a % diff of {_perc_diff:0.1f},
-            where success is {_criteria:0.1f}""",
+            msg=f"Expected RMS on residual map of {_expect:0.1f},"
+            "but got {_got:0.1f}, a % diff of {_perc_diff:0.1f},"
+            "where success is {_criteria:0.1f}",
         )
 
         _got = np.abs(stats_bending.rms)
@@ -324,9 +324,9 @@ class TestBending(TestCase):
 
         self.assertTrue(
             _perc_diff <= _criteria,
-            msg=f"""Expected RMS on bending map of {_expect:0.1f},
-            but got {_got:0.1f}, a % diff of {_perc_diff:0.1f},
-            where success is {_criteria:0.1f}""",
+            msg=f"Expected RMS on bending map of {_expect:0.1f},"
+            "but got {_got:0.1f}, a % diff of {_perc_diff:0.1f},"
+            "where success is {_criteria:0.1f}",
         )
 
         # Check forces, RMS and Max
@@ -342,8 +342,8 @@ class TestBending(TestCase):
 
         self.assertTrue(
             _got < _expect,
-            msg=f"""Expected RMS of forces of less than {_expect:0.1f},
-            but got {_got:0.1f}, a % diff of {_perc_diff:0.1f}.""",
+            msg=f"Expected RMS of forces of less than {_expect:0.1f},"
+            "but got {_got:0.1f}, a % diff of {_perc_diff:0.1f}.",
         )
 
         _got = np.max(forces)
@@ -353,8 +353,8 @@ class TestBending(TestCase):
 
         self.assertTrue(
             _got <= _expect,
-            msg=f"""Expected max force of {_expect:0.1f},
-            but got {_got:0.1f}, a % diff of {_perc_diff:0.1f}.""",
+            msg=f"Expected max force of {_expect:0.1f},"
+            "but got {_got:0.1f}, a % diff of {_perc_diff:0.1f}.",
         )
 
     def test_bending_solvay(self):
@@ -386,9 +386,9 @@ class TestBending(TestCase):
 
         self.assertTrue(
             _perc_diff <= _criteria,
-            msg=f"""Expected RMS of {_expect:0.2f}, but got {_got:0.2f},
-            a % diff of {_perc_diff:0.2f},
-            where success is {_criteria:0.2f}""",
+            msg=f"Expected RMS of {_expect:0.2f}, but got {_got:0.2f},"
+            "a % diff of {_perc_diff:0.2f},"
+            "where success is {_criteria:0.2f}",
         )
 
         # Create an array which is 6.6m, and we'll make the OD=6.42m, ID=1.38m
@@ -415,9 +415,9 @@ class TestBending(TestCase):
 
         self.assertTrue(
             _perc_diff <= _criteria,
-            msg=f"""Expected RMS on map with Zernikes removed of {_expect:0.1f},
-            but got {_got:0.1f}, a % diff of {_perc_diff:0.1f},
-            where success is {_criteria:0.1f}""",
+            msg=f"Expected RMS on map with Zernikes removed of {_expect:0.1f},"
+            "but got {_got:0.1f}, a % diff of {_perc_diff:0.1f},"
+            "where success is {_criteria:0.1f}",
         )
 
         # Now remove the bending modes
@@ -452,9 +452,9 @@ class TestBending(TestCase):
 
         self.assertTrue(
             _perc_diff <= _criteria,
-            msg=f"""Expected RMS on residual map of {_expect:0.1f},
-            but got {_got:0.1f}, a % diff of {_perc_diff:0.1f},
-            where success is {_criteria:0.1f}""",
+            msg=f"Expected RMS on residual map of {_expect:0.1f},"
+            "but got {_got:0.1f}, a % diff of {_perc_diff:0.1f},"
+            "where success is {_criteria:0.1f}",
         )
 
         _got = np.abs(stats_bending.rms)
@@ -464,9 +464,9 @@ class TestBending(TestCase):
 
         self.assertTrue(
             _perc_diff <= _criteria,
-            msg=f"""Expected RMS on bending map of {_expect:0.1f},
-            but got {_got:0.1f}, a % diff of {_perc_diff:0.1f},
-            where success is {_criteria:0.1f}""",
+            msg=f"Expected RMS on bending map of {_expect:0.1f},"
+            "but got {_got:0.1f}, a % diff of {_perc_diff:0.1f},"
+            "where success is {_criteria:0.1f}",
         )
 
         # Check forces, RMS and Max
@@ -481,8 +481,8 @@ class TestBending(TestCase):
 
         self.assertTrue(
             _got <= _expect,
-            msg=f"""Expected RMS of forces of {_expect:0.1f},
-              but got {_got:0.1f}, a % diff of {_perc_diff:0.1f}.""",
+            msg=f"Expected RMS of forces of {_expect:0.1f},"
+              "but got {_got:0.1f}, a % diff of {_perc_diff:0.1f}.",
         )
 
         _got = np.max(forces)
@@ -492,8 +492,8 @@ class TestBending(TestCase):
 
         self.assertTrue(
             _got <= _expect,
-            msg=f"""Expected max force of {_expect:0.1f},
-             but got {_got:0.1f}, a % diff of {_perc_diff:0.1f}.""",
+            msg=f"Expected max force of {_expect:0.1f},"
+             "but got {_got:0.1f}, a % diff of {_perc_diff:0.1f}.",
         )
 
     def test_calc_moments(self):

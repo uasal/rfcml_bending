@@ -145,7 +145,8 @@ class ForceSpace:
         self.filename = file_path.name
 
     def load_stp(self, file_path):
-        """Populates the force_space.data dictionary from the STP specific force space matrix.
+        """Populates the force_space.data dictionary from the STP
+        specific force space matrix.
 
         Parameters
         ----------
@@ -161,7 +162,8 @@ class ForceSpace:
         self.filename = file_path.name
 
     def load_stp_rw(self, file_path):
-        """Populates the force_space.data dictionary from the STP specific forceSpace matrix.
+        """Populates the force_space.data dictionary from the STP specific
+        force space matrix.
 
         Parameters
         ----------
@@ -227,9 +229,9 @@ class ForceSpace:
 
         if len(input_map) != len(self.data["x_nodes"]):
             raise ValueError(
-                f"""Input map (len={len(input_map)})
-                and coordinate arrays (length={len(x_vec)})
-                are not the same size."""
+                f"Input map (len={len(input_map)})"
+                "and coordinate arrays (length={len(x_vec)})"
+                "are not the same size."
             )
 
         if method == "gauss":
