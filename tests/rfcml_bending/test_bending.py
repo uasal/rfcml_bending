@@ -482,7 +482,7 @@ class TestBending(TestCase):
         self.assertTrue(
             _got <= _expect,
             msg=f"Expected RMS of forces of {_expect:0.1f},"
-              "but got {_got:0.1f}, a % diff of {_perc_diff:0.1f}.",
+            "but got {_got:0.1f}, a % diff of {_perc_diff:0.1f}.",
         )
 
         _got = np.max(forces)
@@ -493,7 +493,7 @@ class TestBending(TestCase):
         self.assertTrue(
             _got <= _expect,
             msg=f"Expected max force of {_expect:0.1f},"
-             "but got {_got:0.1f}, a % diff of {_perc_diff:0.1f}.",
+            "but got {_got:0.1f}, a % diff of {_perc_diff:0.1f}.",
         )
 
     def test_calc_moments(self):
