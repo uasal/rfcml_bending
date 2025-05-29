@@ -6,11 +6,13 @@ import pytest
 
 from rfcml_bending import force_matrix
 
-# TODO: Update to use UASAL_archive
+# TODO: Update to use files in UASAL_archive
 
 TEST_FILE_UM = Path("tests/data/um_42_forcespace.mat")
+# For reference only, but will soon not be supported
 # TEST_FILE_STP = Path('tests/data/stp_forcespace_RW_220928.mat')
 TEST_FILE_STP = Path("tests/data/stp_tel_166_forcespace_mkII.mat")
+# For reference only, but is supported.
 TEST_FILE_STP_100 = Path("tests/data/six_five_100_forcespace_mkIII.mat")
 
 
@@ -77,12 +79,12 @@ def test_stp():
     check_types(force_space)
 
 
-@pytest.mark.skipif(not TEST_FILE_UM.exists, reason="No Ultramarine force space (.mat) file found.")
+@pytest.mark.skipif(not TEST_FILE_STP.exists, reason="No Ultramarine force space (.mat) file found.")
 def test_fea_to_grid():
     """tests function to go from fea space to grid space in 1 line.
     Test uses plot produced by Steve West's documentation."""
 
-    force_space = force_matrix.ForceSpace(TEST_FILE_STP_100)
+    force_space = force_matrix.ForceSpace(TEST_FILE_STP)
 
     # Just use a influence fxn mode as an example map
     # A has rows of surface, columns of influence (actuator)
