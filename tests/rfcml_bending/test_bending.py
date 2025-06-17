@@ -2,7 +2,7 @@
 import pathlib
 from unittest import TestCase
 
-# from rfcml_bending import force_matrix
+from rfcml_bending import force_matrix
 import numpy as np
 import psd_utils
 import scipy.io
