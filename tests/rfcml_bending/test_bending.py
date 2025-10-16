@@ -544,11 +544,37 @@ class TestBending(TestCase):
         limit = np.abs(0.001 * np.min([moment_x_exp, moment_y_exp]))
         mom_x, mom_y = bending.calc_moments(f_balanced, limit=limit)
 
+    def test_fit_coeffs(self):
+        """Performs bending mode fit to itself to produce column vector of 1."""
 
-# tmp=TestBending()
+        mat_file = "C:/Users/solva/OneDrive - University of Arizona/Desktop/bending_mode/stp_forcespace_RW_220928.mat"
+        bending = Bending(mat_file)
+
+        modes = 33
+        for b in range(modes):
+            input_fea = bending.force_space.data["U"][:, b]
+            b_coeff = np.dot(bending.force_space.data['U'][:, b].T, input_fea)
+
+
+        _got = b_coeff
+        _expect = 1
+
+        self.assertTrue(
+            _got <= _expect,
+            msg=f"Expected coefficient of {_expect:0.1f},"
+            "but got {_got:0.1f},"
+        )
+
+
+
+
+
+
+tmp=TestBending()
 # tmp.test_instantiate_bending()
 # tmp.test_bending_mode_correction()
 # tmp.test_bending_solvay_orig()
 # tmp.test_bending_solvay()
 # tmp.test_bending_solvay()
 # tmp.test_calc_moments()
+tmp.test_fit_coeffs()
