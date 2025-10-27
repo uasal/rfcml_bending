@@ -317,9 +317,7 @@ class TestBending(TestCase):
 
         self.assertTrue(
             _perc_diff <= _criteria,
-            msg=f"Expected RMS on residual map of {_expect:0.1f},"
-            "but got {_got:0.1f}, a % diff of {_perc_diff:0.1f},"
-            "where success is {_criteria:0.1f}",
+            msg=f"Expected RMS on residual map of {_expect:0.1f}, but got {_got:0.1f}, a % diff of {_perc_diff:0.1f}, where success is {_criteria:0.1f}",
         )
 
         _got = np.abs(stats_bending.rms)
@@ -329,9 +327,7 @@ class TestBending(TestCase):
 
         self.assertTrue(
             _perc_diff <= _criteria,
-            msg=f"Expected RMS on bending map of {_expect:0.1f},"
-            "but got {_got:0.1f}, a % diff of {_perc_diff:0.1f},"
-            "where success is {_criteria:0.1f}",
+            msg=f"Expected RMS on bending map of {_expect:0.1f}, but got {_got:0.1f}, a % diff of {_perc_diff:0.1f} where success is {_criteria:0.1f}",
         )
 
         # Check forces, RMS and Max
@@ -559,7 +555,8 @@ class TestBending(TestCase):
 
         for b in range(modes): # define a for loop to multiply modes to
             rmsForces_bal, b_mode_fit, forces =  bending.fit_bending(modes_to_fit = np.arange(0, modes), map=input_fea) # fit to your bending modes
-            test_coef = np.dot(bending.force_space.data['U'][:, b].T, input_fea) # create an array of bending coefficients from fit map
+            test_coef = np.dot(bending.force_space.data['U'][:, b].T, b_mode_fit) # create an array of bending coefficients from fit map
+            print(test_coef)
             new_coef = test_coef.reshape(modes, 1) # reshape your array to later make a matrix of coefficients
             cols.append(new_coef) # append your new coefficients
         
