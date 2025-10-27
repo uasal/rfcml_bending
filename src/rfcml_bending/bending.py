@@ -124,7 +124,7 @@ class Bending:
         return rmsForces_bal, fit, forces
 
     def bending_mode_correction(
-        self, map, mask, n_modes, dx=None, coords=None, plots=False, rm_zerns=[0, 1, 2, 3, 6, 7], method=None
+        self, map, mask, n_modes, dx=None, coords=None, plots=False, rm_zerns=[0, 1, 2, 3, 6, 7], method=None, gauss_remove=False
     ):
         """
         Removes bending modes from an UA produced borosilicate M1 mirror.
@@ -165,12 +165,20 @@ class Bending:
         forces: array
             Array of forces on each actuator
 
+        bendCoef: array
+            array of coefficients of linear combination of bending modes
+
         """
 
         assert mask.dtype == bool, "Mask needs to be a dtype of boolean."
 
         # set terms in decomposed Zernike surface to zero to reconstruct a map without piston/tip/tilt/focus/coma (default)
-        removed_map, zern_fit_map = remove_zerns(map, mask, rm_zerns)
+        if gauss_remove == True:
+            removed_map, zern_fit_map = remove_zerns(map, mask, rm_zerns)
+        else:
+            print('No Zern removal')
+            removed_map = map
+            zern_fit_map = map
 
         x_node = self.force_space.data["x_nodes"]  # x-location of nodes
         y_node = self.force_space.data["y_nodes"]  # y- location of nodes
@@ -203,7 +211,7 @@ class Bending:
 
             modes = list(range(0, n_modes))
             rmsForces, fit, forces = self.fit_bending(modes, fea_map)
-        elif method == "orig":
+        elif method == "orig": # orig method ONLY works with RW forcespace matrices
             # resampling from WFE grid to point cloud space, which is the FEA nodes.
             fea_map = resampleGauss(x_vec, y_vec, z_vec, x_node, y_node, fwhm=0.2)
             rmsForces, fit, forces = self.modalCorrection_orig(n_modes, fea_map)
@@ -224,13 +232,15 @@ class Bending:
 
         residual = removed_map - fitted_surf
 
+        percen_err = np.abs((fitted_surf - map) / (map)) * 100
+
         if plots:
             import psd_utils
 
             psd_tools = psd_utils.PSDUtils()
 
-            ncols = 5
-            fig, (ax1, ax2, ax3, ax4, ax5) = plt.subplots(figsize=(20, ncols), ncols=ncols)
+            ncols = 6
+            fig, (ax1, ax2, ax3, ax4, ax5, ax6) = plt.subplots(figsize=(20, ncols), ncols=ncols)
             # fig.suptitle('Original, Fitted, theoretical residuals, actual residuals')
 
             vals_mask = mask
@@ -247,7 +257,7 @@ class Bending:
             )
 
             vals_mask = mask
-            vals = zern_fit_map * vals_mask
+            vals = map * vals_mask
             stats = psd_tools.get_map_stats(vals, vals_mask, report=False)
             ax2.imshow(vals)
             ax2.set_title("Zernike Fit (PTTFC) to Map")
@@ -297,6 +307,19 @@ class Bending:
                 verticalalignment="top",
             )
             ax5.imshow(vals)
+
+            vals = percen_err
+            vals_mask = mask
+            stats = psd_tools.get_map_stats(percen_err, vals_mask, report=False)
+            ax6.set_title(f"Percent Error")
+            ax6.annotate(
+                f"PtoV={stats.ptov:0.1f}\nRMS={stats.sigma:0.1f},\nForces(RMS)={rmsForces:0.1f}",
+                xy=(0.95, 0.95),
+                xycoords="axes fraction",
+                horizontalalignment="right",
+                verticalalignment="top",
+            )
+            ax6.imshow(vals)
 
             fname = "test_bending_mode_correction_plots.png"
             plt.savefig(TEST_OUTPUT_DATA_DIR.joinpath(fname))
