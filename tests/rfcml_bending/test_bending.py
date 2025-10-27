@@ -11,9 +11,14 @@ from poppy import zernike
 
 from rfcml_bending.bending import Bending, remove_zerns
 
-TEST_SUPPORT_DATA_DIR = "C:/Users/solva/OneDrive - University of Arizona/Desktop/STP Synthetic Data/syn_wfe_09061000.mat"
-TEST_FORCESPACE_RW = "C:/Users/solva/OneDrive - University of Arizona/Desktop/bending_mode/stp_forcespace_RW_220928.mat"
-TEST_FORCESPACE = "C:/Users/solva/OneDrive - University of Arizona/Desktop/bending_mode/stp_tel_166_forcespace_mkII.mat"
+# TEST_SUPPORT_DATA_DIR = "C:/Users/solva/OneDrive - University of Arizona/Desktop/STP Synthetic Data/syn_wfe_09061000.mat"
+# TEST_FORCESPACE_RW = "C:/Users/solva/OneDrive - University of Arizona/Desktop/bending_mode/stp_forcespace_RW_220928.mat"
+# TEST_FORCESPACE = "C:/Users/solva/OneDrive - University of Arizona/Desktop/bending_mode/stp_tel_166_forcespace_mkII.mat"
+
+TEST_SUPPORT_DATA_DIR = pathlib.Path(__file__).parents[2].joinpath("tests", "data")
+TEST_FORCESPACE_RW = TEST_SUPPORT_DATA_DIR.joinpath("stp_forcespace_RW_220928.mat")
+TEST_FORCESPACE = TEST_SUPPORT_DATA_DIR.joinpath("stp_tel_166_forcespace_mkII.mat")
+
 
 
 class TestBending(TestCase):
@@ -222,7 +227,7 @@ class TestBending(TestCase):
         as a map supplied by Solvay."""
         psd_tools = psd_utils.PSDUtils()
 
-        mat_file = TEST_SUPPORT_DATA_DIR # surface error
+        mat_file = TEST_SUPPORT_DATA_DIR.joinpath("syn_wfe_09061000.mat")  # surface error
         input_map = scipy.io.loadmat(mat_file)["wavefront"]  # wavefront error
 
         # Solvay reports surface error in matlab, and wavefront error in python
@@ -364,7 +369,7 @@ class TestBending(TestCase):
         created by Steve West."""
         psd_tools = psd_utils.PSDUtils()
 
-        mat_file = TEST_SUPPORT_DATA_DIR  # surface error
+        mat_file = TEST_SUPPORT_DATA_DIR.joinpath("syn_wfe_09061000.mat")  # surface error
         input_map = scipy.io.loadmat(mat_file)["wavefront"]  # wavefront error
 
         # Solvay reports surface error in matlab, and wavefront error in python
@@ -386,9 +391,7 @@ class TestBending(TestCase):
 
         self.assertTrue(
             _perc_diff <= _criteria,
-            msg=f"Expected RMS of {_expect:0.2f}, but got {_got:0.2f},"
-            "a % diff of {_perc_diff:0.2f},"
-            "where success is {_criteria:0.2f}",
+            msg=f"Expected RMS of {_expect:0.2f}, but got {_got:0.2f}, a % diff of {_perc_diff:0.2f}, where success is {_criteria:0.2f}",
         )
 
         # Create an array which is 6.6m, and we'll make the OD=6.42m, ID=1.38m
@@ -452,9 +455,7 @@ class TestBending(TestCase):
 
         self.assertTrue(
             _perc_diff <= _criteria,
-            msg=f"Expected RMS on residual map of {_expect:0.1f},"
-            "but got {_got:0.1f}, a % diff of {_perc_diff:0.1f},"
-            "where success is {_criteria:0.1f}",
+            msg=f"Expected RMS on residual map of {_expect:0.1f}, but got {_got:0.1f}, a % diff of {_perc_diff:0.1f}, where success is {_criteria:0.1f}",
         )
 
         _got = np.abs(stats_bending.rms)
@@ -464,8 +465,7 @@ class TestBending(TestCase):
 
         self.assertTrue(
             _perc_diff <= _criteria,
-            msg=f"Expected RMS on bending map of {_expect:0.1f},"
-            "but got {_got:0.1f}, a % diff of {_perc_diff:0.1f},"
+            msg=f"Expected RMS on bending map of {_expect:0.1f}, but got {_got:0.1f}, a % diff of {_perc_diff:0.1f},"
             "where success is {_criteria:0.1f}",
         )
 
@@ -547,22 +547,36 @@ class TestBending(TestCase):
     def test_fit_coeffs(self):
         """Performs bending mode fit to itself to produce column vector of 1."""
 
-        mat_file = TEST_FORCESPACE_RW
+        mat_file = TEST_FORCESPACE
         bending = Bending(mat_file)
 
-        modes = 33
-        for b in range(modes):
-            input_fea = bending.force_space.data["U"][:, b]
-            b_coeff = np.dot(bending.force_space.data['U'][:, b].T, input_fea)
+        modes = 5 # define number of modes you're fitting to
+
+        input_coeff = np.arange(1, modes + 1) ## define the input coefficients
+
+        input_fea = bending.force_space.data['U'][:, :modes]*input_coeff # scale each bending mode by your input coefficients
+        cols = []
+
+        for b in range(modes): # define a for loop to multiply modes to
+            rmsForces_bal, b_mode_fit, forces =  bending.fit_bending(modes_to_fit = np.arange(0, modes), map=input_fea) # fit to your bending modes
+            test_coef = np.dot(bending.force_space.data['U'][:, b].T, input_fea) # create an array of bending coefficients from fit map
+            new_coef = test_coef.reshape(modes, 1) # reshape your array to later make a matrix of coefficients
+            cols.append(new_coef) # append your new coefficients
+        
+
+        coef_array = np.array(cols) # convert from list to np.array
+        reshape_coef = coef_array.reshape(modes, modes) # reshape to form a kind of  matrix where coefficients are your diagonal and all other vals are 0
+        new_coefs = np.diag(reshape_coef) # extract coefficients from the diagonal
+        div_coefs = new_coefs/input_coeff # divide coefficients by input (they should be equal so this should equal the diagonal of an identity matrix)
 
 
-        _got = b_coeff.astype(int)
-        _expect = 1
+        _got = div_coefs
+        _expect = np.ones(modes)
 
 
         self.assertTrue(
-            _got <= _expect,
-            msg=f"Expected coefficient of {_expect:0.1f} but got {_got:0.1f},"
+            _got.any() == _expect.any(),
+            msg="Arrays should be equal,"
         )
 
 
