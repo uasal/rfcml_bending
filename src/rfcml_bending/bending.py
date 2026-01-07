@@ -76,55 +76,9 @@ class Bending:
         # return rmsForces, fit, forces #  orig
         return rmsForces_bal, fit_map, forces
 
-    def modalCorrection_orig(self, t, mapOnFEGrid):
-        """
-        Fits bending modes.
-        Requires the data be sampled very specifically so as to match
-        the fea nodes in the force_space matrix.
-        This routine should not be called directly but only
-        through the bending_mode_correction routine.
-        """
-
-        actuators = self.force_space.data["U"].shape[1]
-        sinv = np.zeros((actuators, actuators))  # array for stiffness matrix
-        maxBendingModes = t
-
-        maskOnFEgrid = np.isfinite(mapOnFEGrid)
-
-        for f in range(maxBendingModes):
-            sinv[f, f] = 1.0 / self.force_space.data["S"][f, f]  # Create a stiffness matrix
-
-            # Don't need to run the below code except for the last bending mode
-            # as this is when the stiffness matrix is populated
-            # Makes no difference in speed though.
-            if f < (t - 1):
-                continue
-            # print(f'HERE for {f=}')
-
-            bendCoef = np.dot(self.force_space.data["U"][:, :f].T, mapOnFEGrid[maskOnFEgrid])
-            forceCoef = np.dot(
-                sinv[:, :f], bendCoef
-            )  # Multiply each bending mode coefficient by the stiffness to get how much of each force mode
-            forces = np.dot(
-                self.force_space.data["V"], forceCoef
-            )  # Convert from force modes to actuator forces
-            rmsForces = np.sqrt(
-                np.dot(forces, forces) / actuators
-            )  # Calculate RMS force of all actuator forces across the mirror
-            # print(force_space['V'])
-
-            forces_bal = np.dot(self.force_space.data["af2lc"], forces)
-            forces_bal = -forces_bal
-            rmsForces_bal = np.sqrt(np.dot(forces_bal, forces_bal) / actuators)
-
-            zModeFit = np.dot(self.force_space.data["U"][:, :f], bendCoef)
-            fit = zModeFit - np.mean(zModeFit)
-
-        # return rmsForces, fit, forces #  orig
-        return rmsForces_bal, fit, forces
 
     def bending_mode_correction(
-        self, map, mask, n_modes, dx=None, coords=None, plots=False, rm_zerns=[0, 1, 2, 3, 6, 7], method=None, gauss_remove=False
+        self, map, mask, n_modes, dx=None, coords=None, plots=False, rm_zerns=[0, 1, 2, 3, 6, 7], method=None, zern_remove=False
     ):
         """
         Removes bending modes from an UA produced borosilicate M1 mirror.
@@ -147,6 +101,9 @@ class Bending:
 
         n_modes: int
             Number of bending modes to be fit.
+
+        zern_remove: true/false
+            Whether or not to remove low order piston/tip/tilt/focus/coma from input surface map.
 
         Returns
         -------
@@ -173,10 +130,10 @@ class Bending:
         assert mask.dtype == bool, "Mask needs to be a dtype of boolean."
 
         # set terms in decomposed Zernike surface to zero to reconstruct a map without piston/tip/tilt/focus/coma (default)
-        if gauss_remove == True:
+        if zern_remove == True:
             removed_map, zern_fit_map = remove_zerns(map, mask, rm_zerns)
         else:
-            print('No Zern removal')
+            print('Not removing zernikes because zern_remove=False')
             removed_map = map
             zern_fit_map = map
 
@@ -211,6 +168,7 @@ class Bending:
 
             modes = list(range(0, n_modes))
             rmsForces, fit, forces = self.fit_bending(modes, fea_map)
+
         elif method == "orig": # orig method ONLY works with RW forcespace matrices
             # resampling from WFE grid to point cloud space, which is the FEA nodes.
             fea_map = resampleGauss(x_vec, y_vec, z_vec, x_node, y_node, fwhm=0.2)
@@ -223,16 +181,17 @@ class Bending:
         # Surface is low order so no need to smoothing (meaning using the resampleGauss method)
 
         fitted_surf = griddata(
-            (x_node.flatten(), y_node.flatten()),
-            fit.flatten(),
+            (x_node, y_node),
+            fit,
             (coords.x_grid, coords.y_grid),
         )
+
 
         fitted_surf_mask = ~np.isnan(fitted_surf)
 
         residual = removed_map - fitted_surf
 
-        percen_err = np.abs((fitted_surf - map) / (map)) * 100
+       # percen_err = np.abs((fitted_surf - map) / (map)) * 100
 
         if plots:
             import psd_utils
@@ -308,18 +267,18 @@ class Bending:
             )
             ax5.imshow(vals)
 
-            vals = percen_err
-            vals_mask = mask
-            stats = psd_tools.get_map_stats(percen_err, vals_mask, report=False)
-            ax6.set_title(f"Percent Error")
-            ax6.annotate(
-                f"PtoV={stats.ptov:0.1f}\nRMS={stats.sigma:0.1f},\nForces(RMS)={rmsForces:0.1f}",
-                xy=(0.95, 0.95),
-                xycoords="axes fraction",
-                horizontalalignment="right",
-                verticalalignment="top",
-            )
-            ax6.imshow(vals)
+            # vals = percen_err
+            # vals_mask = mask
+            # stats = psd_tools.get_map_stats(percen_err, vals_mask, report=False)
+            # ax6.set_title(f"Percent Error")
+            # ax6.annotate(
+            #     f"PtoV={stats.ptov:0.1f}\nRMS={stats.sigma:0.1f},\nForces(RMS)={rmsForces:0.1f}",
+            #     xy=(0.95, 0.95),
+            #     xycoords="axes fraction",
+            #     horizontalalignment="right",
+            #     verticalalignment="top",
+            # )
+            # ax6.imshow(vals)
 
             fname = "test_bending_mode_correction_plots.png"
             plt.savefig(TEST_OUTPUT_DATA_DIR.joinpath(fname))

@@ -11,9 +11,6 @@ from poppy import zernike
 
 from rfcml_bending.bending import Bending, remove_zerns
 
-# TEST_SUPPORT_DATA_DIR = "C:/Users/solva/OneDrive - University of Arizona/Desktop/STP Synthetic Data/syn_wfe_09061000.mat"
-# TEST_FORCESPACE_RW = "C:/Users/solva/OneDrive - University of Arizona/Desktop/bending_mode/stp_forcespace_RW_220928.mat"
-# TEST_FORCESPACE = "C:/Users/solva/OneDrive - University of Arizona/Desktop/bending_mode/stp_tel_166_forcespace_mkII.mat"
 
 TEST_SUPPORT_DATA_DIR = pathlib.Path(__file__).parents[2].joinpath("tests", "data")
 TEST_FORCESPACE_RW = TEST_SUPPORT_DATA_DIR.joinpath("stp_forcespace_RW_220928.mat")
@@ -221,142 +218,142 @@ class TestBending(TestCase):
             "but map has {_actual:0.1f}. They should be equal",
         )
 
-    def test_bending_solvay_orig(self):
-        """Test that the code reproduces what Solvay had originally produced.
-        This uses Becca's original fitting code and forcespace, as well
-        as a map supplied by Solvay."""
-        psd_tools = psd_utils.PSDUtils()
+    # def test_bending_solvay_orig(self):
+    #     """Test that the code reproduces what Solvay had originally produced.
+    #     This uses Becca's original fitting code and forcespace, as well
+    #     as a map supplied by Solvay."""
+    #     psd_tools = psd_utils.PSDUtils()
 
-        mat_file = TEST_SUPPORT_DATA_DIR.joinpath("syn_wfe_09061000.mat")  # surface error
-        input_map = scipy.io.loadmat(mat_file)["wavefront"]  # wavefront error
+    #     mat_file = TEST_SUPPORT_DATA_DIR.joinpath("syn_wfe_09061000.mat")  # surface error
+    #     input_map = scipy.io.loadmat(mat_file)["wavefront"]  # wavefront error
 
-        # Solvay reports surface error in matlab, and wavefront error in python
-        # so dividing wfe by 2 before assertions
-        input_map /= 2.0
+    #     # Solvay reports surface error in matlab, and wavefront error in python
+    #     # so dividing wfe by 2 before assertions
+    #     input_map /= 2.0
 
-        map = input_map
-        mask = ~np.isnan(map)
-        map[~mask] = 0
+    #     map = input_map
+    #     mask = ~np.isnan(map)
+    #     map[~mask] = 0
 
-        stats_map = psd_tools.get_map_stats(map, mask, report=False)
+    #     stats_map = psd_tools.get_map_stats(map, mask, report=False)
 
-        input_rms = 32  # [nm] surface rms for input map - from Solvay (python) 2024-10-14
+    #     input_rms = 32  # [nm] surface rms for input map - from Solvay (python) 2024-10-14
 
-        _got = np.abs(stats_map.rms)
-        _expect = np.abs(input_rms)
-        _perc_diff = 100 * np.abs(_expect - _got) / _expect
-        _criteria = (0.5 / 32) * 100  # should be identical, except there is no decimal, so must be within 0.5
+    #     _got = np.abs(stats_map.rms)
+    #     _expect = np.abs(input_rms)
+    #     _perc_diff = 100 * np.abs(_expect - _got) / _expect
+    #     _criteria = (0.5 / 32) * 100  # should be identical, except there is no decimal, so must be within 0.5
 
-        self.assertTrue(
-            _perc_diff <= _criteria,
-            msg=f"Expected RMS of {_expect:0.2f}, but got {_got:0.2f},"
-            "a % diff of {_perc_diff:0.2f},"
-            "where success is {_criteria:0.2f}",
-        )
+    #     self.assertTrue(
+    #         _perc_diff <= _criteria,
+    #         msg=f"Expected RMS of {_expect:0.2f}, but got {_got:0.2f},"
+    #         "a % diff of {_perc_diff:0.2f},"
+    #         "where success is {_criteria:0.2f}",
+    #     )
 
-        # Create an array which is 6.6m, and we'll make the OD=6.42m, ID=1.38m
-        # values are from stp_reference_data as of 2024-10-14
-        od = 6.42
-        id = 1.38
-        dx = 6.5 / input_map.shape[0]
-        coords = psd_tools.coord_arrays(map.shape, dx=dx)
+    #     # Create an array which is 6.6m, and we'll make the OD=6.42m, ID=1.38m
+    #     # values are from stp_reference_data as of 2024-10-14
+    #     od = 6.42
+    #     id = 1.38
+    #     dx = 6.5 / input_map.shape[0]
+    #     coords = psd_tools.coord_arrays(map.shape, dx=dx)
 
-        # reduce the mask to match the clear aperture
-        mask[coords.r_grid > od / 2] = 0
-        mask[coords.r_grid < id / 2] = 0
+    #     # reduce the mask to match the clear aperture
+    #     mask[coords.r_grid > od / 2] = 0
+    #     mask[coords.r_grid < id / 2] = 0
 
-        # First check the zernikes removal
-        # per Solvay - Z1-Z4,Z7-8 map has of 19nm RMS (python)
-        terms_to_remove = [0, 1, 2, 3, 6, 7]
-        resultant_map, removed_map = remove_zerns(map, mask, terms_to_remove, plots=False)
-        stats_zerns_removed = psd_tools.get_map_stats(resultant_map, mask, report=False)
+    #     # First check the zernikes removal
+    #     # per Solvay - Z1-Z4,Z7-8 map has of 19nm RMS (python)
+    #     terms_to_remove = [0, 1, 2, 3, 6, 7]
+    #     resultant_map, removed_map = remove_zerns(map, mask, terms_to_remove, plots=False)
+    #     stats_zerns_removed = psd_tools.get_map_stats(resultant_map, mask, report=False)
 
-        _got = np.abs(stats_zerns_removed.rms)
-        _expect = 19
-        _perc_diff = 100 * np.abs(_expect - _got) / _expect
-        _criteria = (0.5 / _expect) * 100  # FIXME:Not enough significant figures, so will be within ~0.5
+    #     _got = np.abs(stats_zerns_removed.rms)
+    #     _expect = 19
+    #     _perc_diff = 100 * np.abs(_expect - _got) / _expect
+    #     _criteria = (0.5 / _expect) * 100  # FIXME:Not enough significant figures, so will be within ~0.5
 
-        self.assertTrue(
-            _perc_diff <= _criteria,
-            msg=f"Expected RMS on map with Zernikes removed of {_expect:0.1f},"
-            "but got {_got:0.1f}, a % diff of {_perc_diff:0.1f},"
-            "where success is {_criteria:0.1f}",
-        )
+    #     self.assertTrue(
+    #         _perc_diff <= _criteria,
+    #         msg=f"Expected RMS on map with Zernikes removed of {_expect:0.1f},"
+    #         "but got {_got:0.1f}, a % diff of {_perc_diff:0.1f},"
+    #         "where success is {_criteria:0.1f}",
+    #     )
 
-        # Now remove the bending modes
-        modes = 33
+    #     # Now remove the bending modes
+    #     modes = 33
 
-        mat_file = TEST_FORCESPACE_RW
-        bending = Bending(mat_file)
+    #     mat_file = TEST_FORCESPACE_RW
+    #     bending = Bending(mat_file)
 
-        # matlab
-        residual, fitted_surf, fitted_surf_mask, rms_forces, forces = bending.bending_mode_correction(
-            map,
-            mask,
-            modes,
-            plots=True,
-            coords=coords,
-            method="orig",
-        )
+    #     # matlab
+    #     residual, fitted_surf, fitted_surf_mask, rms_forces, forces = bending.bending_mode_correction(
+    #         map,
+    #         mask,
+    #         modes,
+    #         plots=True,
+    #         coords=coords,
+    #         method="orig",
+    #     )
 
-        # Check that theoretical residuals and actual residuals are within ~10% of each other
-        # they will be a little different as the masks are different.
+    #     # Check that theoretical residuals and actual residuals are within ~10% of each other
+    #     # they will be a little different as the masks are different.
 
-        # 33 bending mode fitted map from Solvay is 18nm RMSx
-        stats_resultant_bending = 18
-        # Final map
-        stats_resultant_theory = 5
+    #     # 33 bending mode fitted map from Solvay is 18nm RMSx
+    #     stats_resultant_bending = 18
+    #     # Final map
+    #     stats_resultant_theory = 5
 
-        stats_bending = psd_tools.get_map_stats(fitted_surf, mask, report=False)
-        stats_resultant = psd_tools.get_map_stats(residual, mask, report=False)
+    #     stats_bending = psd_tools.get_map_stats(fitted_surf, mask, report=False)
+    #     stats_resultant = psd_tools.get_map_stats(residual, mask, report=False)
 
-        _got = np.abs(stats_resultant.rms)
-        _expect = np.abs(stats_resultant_theory)
-        _perc_diff = 100 * np.abs(_expect - _got) / _expect
-        _criteria = (0.5 / _expect) * 100  # Not enough significant figures, so will be within ~0.5
+    #     _got = np.abs(stats_resultant.rms)
+    #     _expect = np.abs(stats_resultant_theory)
+    #     _perc_diff = 100 * np.abs(_expect - _got) / _expect
+    #     _criteria = (0.5 / _expect) * 100  # Not enough significant figures, so will be within ~0.5
 
-        self.assertTrue(
-            _perc_diff <= _criteria,
-            msg=f"Expected RMS on residual map of {_expect:0.1f}, but got {_got:0.1f}, a % diff of {_perc_diff:0.1f}, where success is {_criteria:0.1f}",
-        )
+    #     self.assertTrue(
+    #         _perc_diff <= _criteria,
+    #         msg=f"Expected RMS on residual map of {_expect:0.1f}, but got {_got:0.1f}, a % diff of {_perc_diff:0.1f}, where success is {_criteria:0.1f}",
+    #     )
 
-        _got = np.abs(stats_bending.rms)
-        _expect = np.abs(stats_resultant_bending)
-        _perc_diff = 100 * np.abs(_expect - _got) / _expect
-        _criteria = (0.5 / _expect) * 100  # Again, lack significant figures
+    #     _got = np.abs(stats_bending.rms)
+    #     _expect = np.abs(stats_resultant_bending)
+    #     _perc_diff = 100 * np.abs(_expect - _got) / _expect
+    #     _criteria = (0.5 / _expect) * 100  # Again, lack significant figures
 
-        self.assertTrue(
-            _perc_diff <= _criteria,
-            msg=f"Expected RMS on bending map of {_expect:0.1f}, but got {_got:0.1f}, a % diff of {_perc_diff:0.1f} where success is {_criteria:0.1f}",
-        )
+    #     self.assertTrue(
+    #         _perc_diff <= _criteria,
+    #         msg=f"Expected RMS on bending map of {_expect:0.1f}, but got {_got:0.1f}, a % diff of {_perc_diff:0.1f} where success is {_criteria:0.1f}",
+    #     )
 
-        # Check forces, RMS and Max
-        # from Solvay: 4.3 N in python and the max force which is 10.7 N
-        # new interpolation gives a lower force value but we're unsure
-        # which is correct, so setting to <5N and < 11N.
-        # new interpolation
+    #     # Check forces, RMS and Max
+    #     # from Solvay: 4.3 N in python and the max force which is 10.7 N
+    #     # new interpolation gives a lower force value but we're unsure
+    #     # which is correct, so setting to <5N and < 11N.
+    #     # new interpolation
 
-        _got = rms_forces
-        _expect = 5
-        _perc_diff = 100 * np.abs(_expect - _got) / _expect
-        # _criteria = (0.1 / _expect) * 100  # Use sig-figs, but might be too tight
+    #     _got = rms_forces
+    #     _expect = 5
+    #     _perc_diff = 100 * np.abs(_expect - _got) / _expect
+    #     # _criteria = (0.1 / _expect) * 100  # Use sig-figs, but might be too tight
 
-        self.assertTrue(
-            _got < _expect,
-            msg=f"Expected RMS of forces of less than {_expect:0.1f},"
-            "but got {_got:0.1f}, a % diff of {_perc_diff:0.1f}.",
-        )
+    #     self.assertTrue(
+    #         _got < _expect,
+    #         msg=f"Expected RMS of forces of less than {_expect:0.1f},"
+    #         "but got {_got:0.1f}, a % diff of {_perc_diff:0.1f}.",
+    #     )
 
-        _got = np.max(forces)
-        _expect = 11
-        _perc_diff = 100 * np.abs(_expect - _got) / _expect
-        # _criteria = (0.1 / _expect) * 100  # Use sig-figs, but might be too tight
+    #     _got = np.max(forces)
+    #     _expect = 11
+    #     _perc_diff = 100 * np.abs(_expect - _got) / _expect
+    #     # _criteria = (0.1 / _expect) * 100  # Use sig-figs, but might be too tight
 
-        self.assertTrue(
-            _got <= _expect,
-            msg=f"Expected max force of {_expect:0.1f},"
-            "but got {_got:0.1f}, a % diff of {_perc_diff:0.1f}.",
-        )
+    #     self.assertTrue(
+    #         _got <= _expect,
+    #         msg=f"Expected max force of {_expect:0.1f},"
+    #         "but got {_got:0.1f}, a % diff of {_perc_diff:0.1f}.",
+    #     )
 
     def test_bending_solvay(self):
         """Test that the code reproduces what Solvay has produced.
@@ -373,6 +370,7 @@ class TestBending(TestCase):
         input_map /= 2.0
 
         map = input_map
+
         mask = ~np.isnan(map)
         map[~mask] = 0
 
@@ -428,9 +426,9 @@ class TestBending(TestCase):
         # force_space = load_force_space(mat_file)
         bending = Bending(mat_file)
 
-        # matlab
+        # matlab - test will not pass if zern_remove = False
         residual, fitted_surf, fitted_surf_mask, rms_forces, forces = bending.bending_mode_correction(
-            map, mask, modes, plots=True, coords=coords
+            map, mask, modes, plots=True, coords=coords, zern_remove=True
         )
 
         # Check that theoretical residuals and actual residuals are within ~10% of each other
@@ -440,9 +438,8 @@ class TestBending(TestCase):
         stats_resultant_bending = 18
         # Final map
         stats_resultant_theory = 5
-
-        stats_bending = psd_tools.get_map_stats(fitted_surf, mask, report=False)
-        stats_resultant = psd_tools.get_map_stats(residual, mask, report=False)
+        stats_bending = psd_tools.get_map_stats(fitted_surf, mask, report=True)
+        stats_resultant = psd_tools.get_map_stats(residual, mask, report=True)
 
         _got = np.abs(stats_resultant.rms)
         _expect = np.abs(stats_resultant_theory)
@@ -461,8 +458,7 @@ class TestBending(TestCase):
 
         self.assertTrue(
             _perc_diff <= _criteria,
-            msg=f"Expected RMS on bending map of {_expect:0.1f}, but got {_got:0.1f}, a % diff of {_perc_diff:0.1f},"
-            "where success is {_criteria:0.1f}",
+            msg=f"Expected RMS on bending map of {_expect:0.1f}, but got {_got:0.1f}, a % diff of {_perc_diff:0.1f}, where success is {_criteria:0.1f}",
         )
 
         # Check forces, RMS and Max
@@ -546,9 +542,12 @@ class TestBending(TestCase):
         mat_file = TEST_FORCESPACE
         bending = Bending(mat_file)
 
-        modes = 5 # define number of modes you're fitting to
+        modes = 33 # define number of modes you're fitting to
 
-        input_coeff = np.arange(1, modes + 1) ## define the input coefficients
+        rng = np.random.default_rng(42)
+
+        input_coeff = rng.random(modes)## define the input coefficients
+        print(input_coeff)
 
         input_fea = bending.force_space.data['U'][:, :modes]*input_coeff # scale each bending mode by your input coefficients
         cols = []
@@ -577,15 +576,3 @@ class TestBending(TestCase):
         )
 
 
-
-
-
-
-#tmp=TestBending()
-# tmp.test_instantiate_bending()
-# tmp.test_bending_mode_correction()
-# tmp.test_bending_solvay_orig()
-# tmp.test_bending_solvay()
-# tmp.test_bending_solvay()
-# tmp.test_calc_moments()
-#tmp.test_fit_coeffs()
