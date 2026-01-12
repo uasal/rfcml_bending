@@ -102,8 +102,11 @@ class Bending:
         n_modes: int
             Number of bending modes to be fit.
 
+        method: str
+            Interpolation method for interpolating from grid space to an array to perform proper bending mode fitting.
+
         zern_remove: true/false
-            Whether or not to remove low order piston/tip/tilt/focus/coma from input surface map.
+            Remove low order piston/tip/tilt/focus/coma from input surface map.
 
         Returns
         -------
@@ -121,9 +124,6 @@ class Bending:
 
         forces: array
             Array of forces on each actuator
-
-        bendCoef: array
-            array of coefficients of linear combination of bending modes
 
         """
 
@@ -181,8 +181,8 @@ class Bending:
         # Surface is low order so no need to smoothing (meaning using the resampleGauss method)
 
         fitted_surf = griddata(
-            (x_node, y_node),
-            fit,
+            (x_node.flatten(), y_node.flatten()),
+            fit.flatten(),
             (coords.x_grid, coords.y_grid),
         )
 
@@ -266,19 +266,6 @@ class Bending:
                 verticalalignment="top",
             )
             ax5.imshow(vals)
-
-            # vals = percen_err
-            # vals_mask = mask
-            # stats = psd_tools.get_map_stats(percen_err, vals_mask, report=False)
-            # ax6.set_title(f"Percent Error")
-            # ax6.annotate(
-            #     f"PtoV={stats.ptov:0.1f}\nRMS={stats.sigma:0.1f},\nForces(RMS)={rmsForces:0.1f}",
-            #     xy=(0.95, 0.95),
-            #     xycoords="axes fraction",
-            #     horizontalalignment="right",
-            #     verticalalignment="top",
-            # )
-            # ax6.imshow(vals)
 
             fname = "test_bending_mode_correction_plots.png"
             plt.savefig(TEST_OUTPUT_DATA_DIR.joinpath(fname))
