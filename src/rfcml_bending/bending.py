@@ -495,7 +495,7 @@ def remove_zerns(map, mask, terms, plots=False, iterations=17):
         psd_tools = psd_utils.PSDUtils()
 
         ncols = 3
-        (ax1, ax2, ax3) = plt.subplots(figsize=(20, ncols), ncols=ncols)
+        fig, (ax1, ax2, ax3) = plt.subplots(nrows=1,ncols=ncols,figsize=(20, ncols))
         # fig.suptitle('Original, Fitted, theoretical residuals, actual residuals')
         vals = map * mask
         stats = psd_tools.get_map_stats(vals, mask, report=False)
